@@ -18,38 +18,16 @@ namespace RPBD
 
         public static List<Form2> OpenForms = new List<Form2>();
 
-        private int RoomIndex = -1;
-        private int RentIndex = -1;
-
         public Form2()
         {
             InitializeComponent();
             OpenForms.Add(this);
-            this.dataGridView1.CellClick += OnCellClick;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             OpenForms.Remove(this);
             base.OnFormClosing(e);
-        }
-
-        private void OnCellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            switch(this.Text)
-            {
-                case "Помещение":
-                    {
-                        RoomIndex = int.Parse(dataGridView1.CurrentRow.Cells["Код Помещения"].Value.ToString());
-                        MessageBox.Show("Click",RoomIndex.ToString());
-                    }
-                    break;
-                case "Аренда":
-                    {
-                        RentIndex = int.Parse(dataGridView1.CurrentRow.Cells["Код Аренды"].Value.ToString());
-                    }
-                    break;
-            }
         }
 
         private void OnRowChanged(object sender, DataRowChangeEventArgs e)
@@ -95,27 +73,7 @@ namespace RPBD
                             {
                                 roomTable.Rows.Add(item.buildingCode, item.roomCode, item.buildingName, item.buildingAddress, item.roomName, item.roomSquare);
                             }
-
                             form.dataGridView1.DataSource = roomTable;
-
-                            int searchValue = RoomIndex;
-                            int rowIndex1 = -1;
-
-                            foreach (DataGridViewRow row in dataGridView1.Rows)
-                            {
-                                if (row.Cells["Код Помещения"].Value != null && int.Parse(row.Cells["Код Помещения"].Value.ToString()) == searchValue)
-                                {
-                                    rowIndex1 = row.Index;
-                                    break;
-                                }
-                            }
-
-                            if (rowIndex1 != -1)
-                            {
-                                dataGridView1.ClearSelection();
-                                dataGridView1.Rows[rowIndex1].Selected = true;
-                                dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex1].Cells["Имя помещения"];
-                            }
                         }
                         break;
                     case ("Аренда"):
@@ -378,6 +336,7 @@ namespace RPBD
                             BuildingEdit bi = new BuildingEdit();
                             DataGridViewRow selectedRow = dataGridView1.CurrentRow;
                             int rowIndex = (int)selectedRow.Cells["Код Здания"].Value;
+                            int columnIndex = dataGridView1.CurrentCell.ColumnIndex; // Сохраняем индекс выбранного столбца
                             bi.SetFields(selectedRow.Cells["Имя"].Value.ToString(), selectedRow.Cells["Адрес"].Value.ToString());
                             if (dataGridView1.CurrentCell.OwningColumn.Name == "Адрес")
                             {
@@ -388,7 +347,9 @@ namespace RPBD
                             {
                                 dataset.Tables["Здание"].Rows[rowIndex]["Имя"] = bi.TextBox1Value;
                                 dataset.Tables["Здание"].Rows[rowIndex]["Адрес"] = bi.TextBox2Value;
+                                dataGridView1.CurrentCell = dataGridView1[columnIndex, selectedRow.Index];
                             }
+
                         }
                     }
                     break;
@@ -406,30 +367,11 @@ namespace RPBD
                             bi.SetFields(dataset.Tables["Здание"], selectedRow.Cells["Имя помещения"].Value.ToString(), Convert.ToDouble(selectedRow.Cells["Площадь помещения"].Value), selectedRow);
                             bi.SetFocus(dataGridView1.CurrentCell.OwningColumn.Name);
                             bi.ShowDialog();
-                            if(bi.DialogResult == DialogResult.OK)
+                            if (bi.DialogResult == DialogResult.OK)
                             {
                                 dataset.Tables["Помещение"].Rows[rowIndex]["Код Здания"] = bi.SelectedBuilding;
                                 dataset.Tables["Помещение"].Rows[rowIndex]["Имя"] = bi.RoomName;
                                 dataset.Tables["Помещение"].Rows[rowIndex]["Площадь"] = bi.RoomSquare;
-                            }
-
-                            int searchValue = rowIndex;
-                            int rowIndex1 = -1;
-
-                            foreach (DataGridViewRow row in dataGridView1.Rows)
-                            {
-                                if (row.Cells["Код Помещения"].Value != null && int.Parse(row.Cells["Код Помещения"].Value.ToString()) == searchValue)
-                                {
-                                    rowIndex1 = row.Index;
-                                    break;
-                                }
-                            }
-
-                            if (rowIndex1 != -1)
-                            {
-                                dataGridView1.ClearSelection();
-                                dataGridView1.Rows[rowIndex1].Selected = true;
-                                dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex1].Cells["Имя помещения"];
                             }
                         }
                     }
@@ -444,7 +386,7 @@ namespace RPBD
                         {
                             RentorEdit RE = new RentorEdit();
                             DataGridViewRow selectedRow = dataGridView1.CurrentRow;
-                            int rowIndex = dataGridView1.Rows.IndexOf(selectedRow);
+                            int rowIndex = (int)selectedRow.Cells["Код арендатора"].Value;
                             RE.SetFields(selectedRow.Cells["Название Фирмы"].Value.ToString(), selectedRow.Cells["Юридический Адрес"].Value.ToString(), selectedRow.Cells["ФИО"].Value.ToString(), selectedRow.Cells["Контактный телефон"].Value.ToString());
                             RE.SetFocus(dataGridView1.CurrentCell.OwningColumn.Name);
                             RE.ShowDialog();
