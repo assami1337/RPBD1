@@ -31,7 +31,7 @@ namespace RPBD
             buildingTable.Columns.Add("Имя", typeof(string));
             buildingTable.Columns.Add("Адрес", typeof(string));
 
-            DataRow row = buildingTable.NewRow(); 
+            DataRow row = buildingTable.NewRow();
             row["Имя"] = "Здание 5";
             row["Адрес"] = "Московский тракт 135";
             buildingTable.Rows.Add(row);
@@ -135,7 +135,7 @@ namespace RPBD
             dataSet1.Tables.Add(roomTable);
             dataSet1.Tables.Add(tenantTable);
             dataSet1.Tables.Add(leaseTable);
-            
+
         }
 
         public DataSet DataSet1
@@ -170,7 +170,7 @@ namespace RPBD
             bool flag = true;
             foreach (var ch in MdiChildren)
             {
-                if(ch.Text == str)
+                if (ch.Text == str)
                 {
                     flag = false;
                     зданиеToolStripMenuItem.Checked = false;
@@ -249,7 +249,7 @@ namespace RPBD
                 form1.Show();
                 form1.BringToFront();
             }
-            
+
         }
 
         private void арендаToolStripMenuItem_Click(object sender, EventArgs e)
@@ -284,7 +284,31 @@ namespace RPBD
         private void xMLToolStripMenuItem_Click(object sender, EventArgs e)
         {
             dataSet1.WriteXml("dataset.xml");
+            DataRelation buildingRoomRelation = new DataRelation(
+            "BuildingRoom",
+            dataSet1.Tables["Здание"].Columns["Код Здания"],
+            dataSet1.Tables["Помещение"].Columns["Код Здания"]
+                );
+            dataSet1.Relations.Add(buildingRoomRelation);
+
+            DataRelation roomLeaseRelation = new DataRelation(
+                "RoomLease",
+                dataSet1.Tables["Помещение"].Columns["Код Помещения"],
+                dataSet1.Tables["Аренда"].Columns["Код Помещения"]
+            );
+            dataSet1.Relations.Add(roomLeaseRelation);
+
+            DataRelation tenantLeaseRelation = new DataRelation(
+                "TenantLease",
+                dataSet1.Tables["Арендатор"].Columns["Код арендатора"],
+                dataSet1.Tables["Аренда"].Columns["Код арендатора"]
+            );
+            dataSet1.Relations.Add(tenantLeaseRelation);
             dataSet1.WriteXmlSchema("Customers.xsd");
+            dataSet1.Relations.Remove("BuildingRoom");
+            dataSet1.Relations.Remove("RoomLease");
+            dataSet1.Relations.Remove("TenantLease");
+
             MessageBox.Show("Данные и схема успешно сохранен в XML файл.");
         }
 

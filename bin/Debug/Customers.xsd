@@ -15,7 +15,7 @@
         <xs:element name="Помещение">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="Код_x0020_Помещения" msdata:AutoIncrement="true" type="xs:int" minOccurs="0" />
+              <xs:element name="Код_x0020_Помещения" msdata:AutoIncrement="true" type="xs:int" />
               <xs:element name="Имя" type="xs:string" minOccurs="0" />
               <xs:element name="Площадь" type="xs:double" minOccurs="0" />
               <xs:element name="Код_x0020_Здания" type="xs:int" minOccurs="0" />
@@ -52,9 +52,25 @@
       <xs:selector xpath=".//Здание" />
       <xs:field xpath="Код_x0020_Здания" />
     </xs:unique>
+    <xs:unique name="Помещение_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Помещение" />
+      <xs:field xpath="Код_x0020_Помещения" />
+    </xs:unique>
     <xs:unique name="Арендатор_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
       <xs:selector xpath=".//Арендатор" />
       <xs:field xpath="Код_x0020_арендатора" />
     </xs:unique>
+    <xs:keyref name="TenantLease" refer="Арендатор_Constraint1">
+      <xs:selector xpath=".//Аренда" />
+      <xs:field xpath="Код_x0020_арендатора" />
+    </xs:keyref>
+    <xs:keyref name="RoomLease" refer="Помещение_Constraint1">
+      <xs:selector xpath=".//Аренда" />
+      <xs:field xpath="Код_x0020_Помещения" />
+    </xs:keyref>
+    <xs:keyref name="BuildingRoom" refer="Constraint1">
+      <xs:selector xpath=".//Помещение" />
+      <xs:field xpath="Код_x0020_Здания" />
+    </xs:keyref>
   </xs:element>
 </xs:schema>
