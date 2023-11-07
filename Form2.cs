@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Linq;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -178,6 +179,7 @@ namespace RPBD
             foreach (DataTable table in dataset.Tables)
             {
                 table.RowChanged += new DataRowChangeEventHandler(OnRowChanged);
+                table.RowDeleted += new DataRowChangeEventHandler(OnRowChanged);
             }
 
             DataTable roomTable = new DataTable();
@@ -306,15 +308,64 @@ namespace RPBD
                 case "Здание":
                     {
                         BuildingInsert bi = new BuildingInsert();
-
                         bi.ShowDialog();
-                        if (bi.DialogResult == DialogResult.OK && bi.Imya != String.Empty && bi.Address != String.Empty)
+                        if (bi.DialogResult == DialogResult.OK)
                         {
                             DataRow newRow = dataset.Tables["Здание"].NewRow();
                             newRow["Имя"] = bi.Imya;
                             newRow["Адрес"] = bi.Address;
                             dataset.Tables["Здание"].Rows.Add(newRow);
                             dataGridView1.Refresh();
+                        }
+                    }
+                    break;
+                case "Помещение":
+                    {
+                        Form3 roomEdit = new Form3();
+                        roomEdit.SetFields(dataset.Tables["Здание"]);
+                        roomEdit.ShowDialog();
+                        if (roomEdit.DialogResult == DialogResult.OK)
+                        {
+                            DataRow newRow = dataset.Tables["Помещение"].NewRow();
+                            newRow["Имя"] = roomEdit.RoomName;
+                            newRow["Площадь"] = roomEdit.RoomSuare;
+                            newRow["Код Здания"] = roomEdit.SelectedBuilding;
+                            dataset.Tables["Помещение"].Rows.Add(newRow);
+                            dataGridView1.Refresh();
+                        }
+                    }
+                    break;
+                case "Арендатор":
+                    {
+                        RentorInsert bi = new RentorInsert();
+                        bi.ShowDialog();
+                        if (bi.DialogResult == DialogResult.OK)
+                        {
+                            DataRow newRow = dataset.Tables["Арендатор"].NewRow();
+                            newRow["Название Фирмы"] = bi.TextBox1Value;
+                            newRow["Юридический Адрес"] = bi.TextBox2Value;
+                            newRow["ФИО"] = bi.TextBox3Value;
+                            newRow["Контактный телефон"] = bi.TextBox4Value;
+                            dataset.Tables["Арендатор"].Rows.Add(newRow);
+                            dataGridView1.Refresh();
+                        }
+                    }
+                    break;
+                case "Аренда":
+                    {
+                        RentInsert bi = new RentInsert();
+                        bi.SetFields(dataset.Tables["Здание"], dataset.Tables["Помещение"], dataset.Tables["Арендатор"]);
+                        bi.ShowDialog();
+                        if (bi.DialogResult == DialogResult.OK)
+                        {
+                            DataRow newRow = dataset.Tables["Аренда"].NewRow();
+                            newRow["Код Помещения"] = bi.SelectedRoom;
+                            newRow["Код арендатора"] = bi.SelectedRenter;
+                            newRow["Номер Договора"] = bi.RentNumber;
+                            newRow["Дата оформления договора"] = bi.RentDate;
+                            newRow["Дата начала аренды"] = bi.RentStart;
+                            newRow["Дата конца аренды"] = bi.RentEnd;
+                            dataset.Tables["Аренда"].Rows.Add(newRow);
                         }
                     }
                     break;
@@ -422,25 +473,67 @@ namespace RPBD
                                 dataset.Tables["Аренда"].Rows[rowIndex]["Дата оформления договора"] = RE.RentDate;
                                 dataset.Tables["Аренда"].Rows[rowIndex]["Дата начала аренды"] = RE.RentStart;
                                 dataset.Tables["Аренда"].Rows[rowIndex]["Дата конца аренды"] = RE.RentEnd;
-                            }
 
-                            int searchValue = rowIndex;
-                            int rowIndex1 = -1;
-                            foreach (DataGridViewRow row in dataGridView1.Rows)
-                            {
-                                if (row.Cells["Код Аренды"].Value != null && int.Parse(row.Cells["Код Аренды"].Value.ToString()) == searchValue)
+                                int searchValue = rowIndex;
+                                int rowIndex1 = -1;
+                                foreach (DataGridViewRow row in dataGridView1.Rows)
                                 {
-                                    rowIndex1 = row.Index;
-                                    break;
+                                    if (row.Cells["Код Аренды"].Value != null && int.Parse(row.Cells["Код Аренды"].Value.ToString()) == searchValue)
+                                    {
+                                        rowIndex1 = row.Index;
+                                        break;
+                                    }
+                                }
+                                if (rowIndex1 != -1)
+                                {
+                                    dataGridView1.ClearSelection();
+                                    dataGridView1.Rows[rowIndex1].Selected = true;
+                                    dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex1].Cells["Имя помещения"];
                                 }
                             }
+                        }
+                    }
+                    break;
+            }
+        }
 
-                            if (rowIndex1 != -1)
-                            {
-                                dataGridView1.ClearSelection();
-                                dataGridView1.Rows[rowIndex1].Selected = true;
-                                dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex1].Cells["Имя помещения"];
-                            }
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            switch (this.Text)
+            {
+                case "Здание":
+                    {
+                        foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                        {
+                            int buildingCode = (int)row.Cells["Код Здания"].Value;
+                            dataset.Tables["Здание"].Rows.Remove(dataset.Tables["Здание"].Rows.Find(buildingCode));
+                        }
+                    }
+                    break;
+                case "Помещение":
+                    {
+                        foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                        {
+                            int buildingCode = (int)row.Cells["Код Помещения"].Value;
+                            dataset.Tables["Помещение"].Rows.Remove(dataset.Tables["Помещение"].Rows.Find(buildingCode));
+                        }
+                    }
+                    break;
+                case "Арендатор":
+                    {
+                        foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                        {
+                            int buildingCode = (int)row.Cells["Код арендатора"].Value;
+                            dataset.Tables["Арендатор"].Rows.Remove(dataset.Tables["Арендатор"].Rows.Find(buildingCode));
+                        }
+                    }
+                    break;
+                case "Аренда":
+                    {
+                        foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+                        {
+                            int buildingCode = (int)row.Cells["Код Аренды"].Value;
+                            dataset.Tables["Аренда"].Rows.Remove(dataset.Tables["Аренда"].Rows.Find(buildingCode));
                         }
                     }
                     break;

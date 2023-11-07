@@ -46,7 +46,7 @@ namespace RPBD
 
             roomTable.Columns.Add("Код Помещения", typeof(int));
             roomTable.Columns["Код Помещения"].AutoIncrement = true;
-            roomTable.PrimaryKey = new DataColumn[] { roomTable.Columns["RoomCode"] };
+            roomTable.PrimaryKey = new DataColumn[] { roomTable.Columns["Код Помещения"] };
             roomTable.Columns.Add("Имя", typeof(string));
             roomTable.Columns.Add("Площадь", typeof(double));
             roomTable.Columns.Add("Код Здания", typeof(int));
@@ -166,7 +166,6 @@ namespace RPBD
 
         private void зданиеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             String str = (sender as ToolStripMenuItem).Text;
             bool flag = true;
             foreach (var ch in MdiChildren)
@@ -192,7 +191,6 @@ namespace RPBD
                 form1.Show();
                 form1.BringToFront();
             }
-            
         }
 
         private void помещениеToolStripMenuItem_Click(object sender, EventArgs e)
@@ -222,7 +220,6 @@ namespace RPBD
                 form1.Show();
                 form1.BringToFront();
             }
-          
         }
 
         private void арендаторToolStripMenuItem_Click(object sender, EventArgs e)
@@ -278,7 +275,6 @@ namespace RPBD
                     Text = str
                 };
                 form1.FormClosing += (s, e1) => { арендаToolStripMenuItem.Checked = false; };
-                
                 form1.LoadData(dataSet1);
                 form1.Show();
                 form1.BringToFront();
@@ -309,8 +305,6 @@ namespace RPBD
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 string filePath = openFileDialog.FileName;
-
-
                 if (Path.GetExtension(filePath).Equals(".xml"))
                 {
                     foreach (var ch in MdiChildren)
